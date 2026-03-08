@@ -14,5 +14,14 @@
             "tab_name": "string",
             "rationale": "string"
         }
+    },
+    {
+        "name": "type",
+        "description": "Type text into a focused or specified input element",
+        "parameters": {
+            "element": "string",
+            "text": "string",
+            "rationale": "string"
+        }
     }
 ]
