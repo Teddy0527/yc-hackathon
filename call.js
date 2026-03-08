@@ -21,12 +21,31 @@ export async function callLLM(prompt, query, history = []) {
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 ...history,
-                { role: "user", content: prompt }
+                { role: "user", content: query }
             ],
             temperature: 0.7
         });
 
-        return response.choices[0].message.content;
+        const content = response.choices[0].message.content;
+
+        // Robust JSON extraction
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+            return {
+                response: content,
+                tool_calls: []
+            };
+        }
+
+        try {
+            return JSON.parse(jsonMatch[0]);
+        } catch (e) {
+            console.error("JSON Parse Error in callLLM:", e);
+            return {
+                response: content,
+                tool_calls: []
+            };
+        }
     } catch (error) {
         console.error("LLM Call Error:", error);
         throw error;

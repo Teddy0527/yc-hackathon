@@ -1,29 +1,18 @@
 [
     {
-        "click": "Click on an element"
+        "name": "click",
+        "description": "Click on an element using a simple description",
+        "parameters": {
+            "element": "string",
+            "rationale": "string"
+        }
     },
     {
-        "change_tab": "Type into an element"
-    },
-    {
-        "scroll": "Scroll to an element"
-    },
-    {
-        "close_tab": "Close a tab"
-    },
-    {
-        "open_tab": "Open a tab"
-    },
-    {
-        "refresh": "Refresh the page"
-    },
-    {
-        "input": "Input text into an element"
-    },
-    {
-        "select": "Select an option from a dropdown"
-    },
-    {
-        "hover": "Hover over an element"
+        "name": "tab_change",
+        "description": "Switch to a different browser tab",
+        "parameters": {
+            "tab_name": "string",
+            "rationale": "string"
+        }
     }
 ]

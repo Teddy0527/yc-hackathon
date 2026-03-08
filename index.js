@@ -33,46 +33,53 @@ app.get('/', (req, res) => {
 
 app.post('/call', async (req, res) => {
 
-    const { query, current_page, other_pages } = req.body;
+    const { query, current_page, other_pages, steps } = req.body;
 
     const allPages = [current_page, ...other_pages];
 
 
     // handle the population of each cache if it doesnt exist
-    if (convoHistory.length === 0) {
+    const userId = req.body.userId;
+    if (!convoHistory.has(userId)) {
         console.log("No Conversation History!")
-        convoHistory.set(req.body.userId, []);
+        convoHistory.set(userId, []);
     }
-    if (stepsCache.length === 0) {
+    if (!stepsCache.has(userId)) {
         console.log("No Steps Cache!")
-        stepsCache.set(req.body.userId, []);
+        stepsCache.set(userId, []);
     }
-    if (openPages.length === 0) {
-        console.log("No Open Pages!")
-        openPages.set(req.body.userId, []);
+    if (!allPages.has(userId)) {
+        console.log("No Page History!")
+        allPages.set(userId, []);
     }
 
     // these are the tools available to the user
     const tools = JSON.parse(fs.readFileSync("./tools.json", "utf8"));
 
-    // prompt 
+    // prompt
     const rawPrompt = fs.readFileSync("./prompts/call.txt", "utf8");
     const prompt = rawPrompt
         .replace("{{AVAILABLE_TABS}}", JSON.stringify(allPages || []))
         .replace("{{CURRENT_PAGE}}", JSON.stringify(current_page || []))
-        .replace("{{CONVERSATION_HISTORY}}", JSON.stringify(convoHistory.get(req.body.userId) || []))
+        .replace("{{CONVERSATION_HISTORY}}", JSON.stringify(convoHistory || []))
         .replace("{{TOOLS}}", JSON.stringify(tools || []))
-        .replace("{{ACTION_HISTORY}}", JSON.stringify(stepsCache.get(req.body.userId) || []));
+        .replace("{{ACTION_HISTORY}}", JSON.stringify(steps || []));
 
     // call the llm
+
     try {
-        const response = await callLLM(prompt, query, convoHistory.get(req.body.userId));
+        const result = await callLLM(prompt, query, convoHistory.get(req.body.userId));
+        const { response, tool_calls } = result;
 
         // Update history
-        convoHistory.get(req.body.userId).push({ role: "user", content: query || "No text provided" });
-        convoHistory.get(req.body.userId).push({ role: "assistant", content: response });
+        convoHistory.push({ role: "user", content: query || "No text provided" });
+        convoHistory.push({ role: "assistant", content: response });
 
-        res.status(200).send(response);
+        // Update steps cache (send all to frontend)
+        // CURRENTLY HAS NO FUNCTIONALITY SINCE ALL WILL BE PASSED BY FRONTEND
+        stepsCache.push(...tool_calls);
+
+        res.status(200).send({ response, tool_calls });
     } catch (error) {
         console.error("Error in /call:", error);
         res.status(500).send("Error generating response");
