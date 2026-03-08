@@ -20,13 +20,13 @@ function injectStyles(): void {
   const style = document.createElement('style');
   style.textContent = `
     @keyframes gh-pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6); }
-      50%  { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+      0%   { box-shadow: 0 0 0 0 rgba(124, 184, 217, 0.6); }
+      50%  { box-shadow: 0 0 0 10px rgba(124, 184, 217, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(124, 184, 217, 0); }
     }
 
     .gh-highlight {
-      outline: 3px solid #0891B2 !important;
+      outline: 3px solid #7CB8D9 !important;
       outline-offset: 2px !important;
       animation: gh-pulse 1.5s ease-in-out infinite !important;
       position: relative !important;
@@ -38,7 +38,7 @@ function injectStyles(): void {
       right: -14px !important;
       width: 36px !important;
       height: 36px !important;
-      background: #0891B2 !important;
+      background: #7CB8D9 !important;
       color: #fff !important;
       border-radius: 50% !important;
       display: flex !important;
@@ -65,6 +65,7 @@ function injectStyles(): void {
       padding: 12px 16px !important;
       border-radius: 10px !important;
       box-shadow: 0 4px 16px rgba(0,0,0,0.18) !important;
+      border-left: 4px solid #7CB8D9 !important;
       max-width: 300px !important;
       z-index: 2147483646 !important;
       pointer-events: none !important;

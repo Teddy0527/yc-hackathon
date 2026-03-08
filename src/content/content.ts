@@ -28,8 +28,9 @@ const PANEL_STYLES = `
     right: 0;
     height: 100vh;
     width: 380px;
-    background: #ECFEFF;
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+    background: #F5F7FA;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+    border-radius: 20px 0 0 20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Arial, sans-serif;
     z-index: 2147483647;
     overflow: hidden;
@@ -49,9 +50,17 @@ const PANEL_STYLES = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 24px;
-    background: #0891B2;
-    color: #fff;
+    padding: 24px 24px;
+    background: #fff;
+    color: #2D3748;
+    border-radius: 20px 0 0 0;
+    border-bottom: 1px solid #EDF2F7;
+  }
+
+  .gh-avatar {
+    font-size: 32px;
+    margin-right: 10px;
+    line-height: 1;
   }
 
   .gh-title {
@@ -63,7 +72,7 @@ const PANEL_STYLES = `
   .gh-close-btn {
     background: none;
     border: none;
-    color: #fff;
+    color: #A0AEC0;
     cursor: pointer;
     width: 44px;
     height: 44px;
@@ -76,11 +85,11 @@ const PANEL_STYLES = `
   }
 
   .gh-close-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .gh-close-btn:focus-visible {
-    outline: 3px solid #164E63;
+    outline: 3px solid #E8687A;
     outline-offset: 2px;
   }
 
@@ -89,41 +98,146 @@ const PANEL_STYLES = `
     height: 24px;
   }
 
+  /* ── Greeting ─────────────────────────────────────────────────── */
+  .gh-greeting {
+    text-align: center;
+    padding: 0 8px;
+  }
+
+  .gh-greeting-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #2D3748;
+    margin-bottom: 8px;
+  }
+
+  .gh-greeting-sub {
+    font-size: 16px;
+    color: #A0AEC0;
+  }
+
   /* ── Body ─────────────────────────────────────────────────────── */
   .gh-body {
-    padding: 28px 24px;
+    padding: 32px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
     gap: 20px;
     overflow-y: auto;
     flex: 1;
   }
 
+  /* ── Transcript ──────────────────────────────────────────────── */
+  .gh-transcript {
+    width: 100%;
+    min-height: 72px;
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 18px;
+    color: #4A6B82;
+    line-height: 1.5;
+    word-break: break-word;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .gh-transcript:empty::after {
+    content: 'Tap the microphone and ask your question...';
+    color: #A0AEC0;
+    font-size: 16px;
+  }
+
+  /* ── Visualizer ────────────────────────────────────────────────── */
+  .gh-visualizer {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(232, 104, 122, 0.08);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .gh-visualizer::before {
+    content: '';
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(232, 104, 122, 0.04);
+  }
+
+  .gh-listening .gh-visualizer {
+    display: flex;
+  }
+
+  .gh-visualizer-bars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 60px;
+    z-index: 1;
+  }
+
+  .gh-visualizer-bar {
+    width: 6px;
+    background: #E8687A;
+    border-radius: 3px;
+    height: 20px;
+  }
+
+  .gh-listening .gh-visualizer-bar {
+    animation: gh-bar-bounce 0.8s ease-in-out infinite;
+  }
+
+  .gh-visualizer-bar:nth-child(1) { animation-delay: 0s; }
+  .gh-visualizer-bar:nth-child(2) { animation-delay: 0.1s; }
+  .gh-visualizer-bar:nth-child(3) { animation-delay: 0.2s; }
+  .gh-visualizer-bar:nth-child(4) { animation-delay: 0.3s; }
+  .gh-visualizer-bar:nth-child(5) { animation-delay: 0.4s; }
+
+  @keyframes gh-bar-bounce {
+    0%, 100% { height: 20px; }
+    50%      { height: 50px; }
+  }
+
+  /* ── Status ──────────────────────────────────────────────────── */
+  .gh-status {
+    font-size: 20px;
+    font-weight: 600;
+    color: #E8687A;
+    text-align: center;
+    min-height: 28px;
+  }
+
   /* ── Mic button ──────────────────────────────────────────────── */
   .gh-mic-btn {
-    width: 96px;
-    height: 96px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     border: none;
-    background: #059669;
+    background: #E8687A;
     color: #fff;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.2s, transform 0.15s;
-    box-shadow: 0 4px 20px rgba(5, 150, 105, 0.4);
+    box-shadow: 0 0 0 8px rgba(232, 104, 122, 0.15), 0 0 0 16px rgba(232, 104, 122, 0.07), 0 4px 20px rgba(232, 104, 122, 0.4);
     flex-shrink: 0;
   }
 
   .gh-mic-btn svg {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 
   .gh-mic-btn:hover {
-    background: #047857;
+    background: #D4576A;
     transform: scale(1.05);
   }
 
@@ -132,52 +246,33 @@ const PANEL_STYLES = `
   }
 
   .gh-mic-btn:focus-visible {
-    outline: 3px solid #164E63;
+    outline: 3px solid #E8687A;
     outline-offset: 3px;
   }
 
   .gh-mic-btn.gh-listening {
-    background: #DC2626;
+    background: #E8687A;
     animation: gh-mic-pulse 1s ease-in-out infinite;
   }
 
+  .gh-mic-btn.gh-thinking {
+    background: #F5A0AB;
+    animation: gh-breathe 2s ease-in-out infinite;
+  }
+
   @keyframes gh-mic-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
-    50%      { box-shadow: 0 0 0 16px rgba(220, 38, 38, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232, 104, 122, 0.5); }
+    50%      { box-shadow: 0 0 0 16px rgba(232, 104, 122, 0); }
   }
 
-  /* ── Transcript ──────────────────────────────────────────────── */
-  .gh-transcript {
-    width: 100%;
-    min-height: 72px;
-    background: #ffffff;
-    border: 2px solid #0891B2;
-    border-radius: 12px;
-    padding: 16px 18px;
-    font-size: 22px;
-    color: #164E63;
-    line-height: 1.5;
-    word-break: break-word;
-  }
-
-  .gh-transcript:empty::after {
-    content: 'Tap the microphone and ask your question...';
-    color: #94A3B8;
-    font-size: 20px;
-  }
-
-  /* ── Status ──────────────────────────────────────────────────── */
-  .gh-status {
-    font-size: 20px;
-    font-weight: 600;
-    color: #164E63;
-    text-align: center;
-    min-height: 28px;
+  @keyframes gh-breathe {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 8px rgba(232, 104, 122, 0.2), 0 4px 20px rgba(232, 104, 122, 0.4); }
+    50%      { transform: scale(1.06); box-shadow: 0 0 0 14px rgba(232, 104, 122, 0.1), 0 4px 24px rgba(232, 104, 122, 0.5); }
   }
 
   /* ── Button row ──────────────────────────────────────────────── */
   .gh-btn-row {
-    display: flex;
+    display: none;
     gap: 12px;
     width: 100%;
   }
@@ -185,12 +280,12 @@ const PANEL_STYLES = `
   .gh-repeat-btn {
     flex: 1;
     padding: 16px 20px;
-    border: 2px solid #059669;
+    border: 2px solid #E8687A;
     background: #fff;
-    color: #059669;
+    color: #E8687A;
     font-size: 20px;
     font-weight: 600;
-    border-radius: 12px;
+    border-radius: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -206,12 +301,12 @@ const PANEL_STYLES = `
   }
 
   .gh-repeat-btn:hover {
-    background: #059669;
+    background: #E8687A;
     color: #fff;
   }
 
   .gh-repeat-btn:focus-visible {
-    outline: 3px solid #164E63;
+    outline: 3px solid #E8687A;
     outline-offset: 2px;
   }
 
@@ -228,12 +323,12 @@ const PANEL_STYLES = `
     transform: translateY(-50%);
     width: 48px;
     height: 96px;
-    border-radius: 12px 0 0 12px;
+    border-radius: 16px 0 0 16px;
     border: none;
-    background: #0891B2;
+    background: #E8687A;
     color: #fff;
     cursor: pointer;
-    box-shadow: -2px 0 12px rgba(8, 145, 178, 0.3);
+    box-shadow: -2px 0 12px rgba(232, 104, 122, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -247,11 +342,11 @@ const PANEL_STYLES = `
   }
 
   .gh-toggle-btn:hover {
-    background: #0E7490;
+    background: #D4576A;
   }
 
   .gh-toggle-btn:focus-visible {
-    outline: 3px solid #164E63;
+    outline: 3px solid #E8687A;
     outline-offset: 2px;
   }
 
@@ -269,6 +364,12 @@ const PANEL_STYLES = `
     }
     .gh-mic-btn.gh-listening {
       animation: none;
+    }
+    .gh-mic-btn.gh-thinking {
+      animation: none;
+    }
+    .gh-visualizer-bar {
+      animation: none !important;
     }
     .gh-close-btn,
     .gh-repeat-btn,
@@ -308,8 +409,8 @@ function createPanel(): {
 
   // Toggle tab (visible when panel minimized)
   const toggleBtn = document.createElement('button');
-  toggleBtn.className = 'gh-toggle-btn gh-hidden';
-  toggleBtn.setAttribute('aria-label', 'Open GrandHelper');
+  toggleBtn.className = 'gh-toggle-btn';
+  toggleBtn.setAttribute('aria-label', 'Open Silver Assist');
   toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
   shadowRoot.appendChild(toggleBtn);
 
@@ -317,16 +418,29 @@ function createPanel(): {
   const panel = document.createElement('div');
   panel.className = 'gh-panel';
   panel.setAttribute('role', 'complementary');
-  panel.setAttribute('aria-label', 'GrandHelper voice assistant');
+  panel.setAttribute('aria-label', 'Silver Assist voice assistant');
   panel.innerHTML = `
     <div class="gh-header">
-      <span class="gh-title">GrandHelper</span>
-      <button class="gh-close-btn" aria-label="Close sidebar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div style="display:flex;align-items:center;"><span class="gh-avatar"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E8687A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="gh-title">Silver Assist</span></div>
+      <button class="gh-close-btn" aria-label="Settings"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
     </div>
     <div class="gh-body">
-      <button class="gh-mic-btn" aria-label="Start listening"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
+      <div class="gh-greeting">
+        <div class="gh-greeting-title">How can I help you today?</div>
+        <div class="gh-greeting-sub">マイクをタップして何でも聞いてください</div>
+      </div>
       <div class="gh-transcript" aria-live="polite"></div>
+      <div class="gh-visualizer">
+        <div class="gh-visualizer-bars">
+          <div class="gh-visualizer-bar"></div>
+          <div class="gh-visualizer-bar"></div>
+          <div class="gh-visualizer-bar"></div>
+          <div class="gh-visualizer-bar"></div>
+          <div class="gh-visualizer-bar"></div>
+        </div>
+      </div>
       <div class="gh-status" aria-live="polite"></div>
+      <button class="gh-mic-btn" aria-label="Start listening"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></button>
       <div class="gh-btn-row">
         <button class="gh-repeat-btn" aria-label="Repeat last response" disabled><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Repeat</button>
       </div>
@@ -356,9 +470,8 @@ function createPanel(): {
 
   toggleBtn.addEventListener('click', openPanel);
 
-  // Start minimized; opened via toolbar click.
+  // Start minimized with a visible edge tab so users can always reopen it.
   panel.classList.add('gh-minimized');
-  toggleBtn.classList.add('gh-hidden');
 
   return { shadowRoot, micBtn, transcript, status, repeatBtn, panel, toggleBtn };
 }
@@ -414,6 +527,7 @@ function init(): void {
     transcript.textContent = '';
     status.textContent = 'Listening...';
     micBtn.classList.add('gh-listening');
+    panel.classList.add('gh-listening');
 
     // 1. Voice input
     const question = await startListening((interim: string) => {
@@ -421,6 +535,7 @@ function init(): void {
     });
 
     micBtn.classList.remove('gh-listening');
+    panel.classList.remove('gh-listening');
 
     if (!question) {
       status.textContent = 'No speech detected. Try again.';
@@ -430,6 +545,7 @@ function init(): void {
 
     transcript.textContent = question;
     status.textContent = 'Analyzing the page...';
+    micBtn.classList.add('gh-thinking');
 
     // 2. Serialize DOM (tags interactive elements with data-gh-id)
     const dom = serializeDOM();
@@ -449,6 +565,7 @@ function init(): void {
         screenshotBase64,
       });
 
+      micBtn.classList.remove('gh-thinking');
       lastResponse = aiResult.spokenResponse;
       repeatBtn.disabled = false;
 
@@ -474,6 +591,7 @@ function init(): void {
         }
       }
     } catch (err) {
+      micBtn.classList.remove('gh-thinking');
       console.error('[GrandHelper] AI request failed:', err);
       status.textContent = 'Something went wrong. Please try again.';
       const errorMessage =
