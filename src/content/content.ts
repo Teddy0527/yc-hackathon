@@ -177,6 +177,76 @@ const PANEL_STYLES = `
     font-size: 16px;
   }
 
+  /* ── Steps list (shown after voice) ────────────────────────────── */
+  .gh-steps {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .gh-steps.gh-visible {
+    display: flex;
+  }
+
+  .gh-steps-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2D3748;
+    margin-bottom: 12px;
+  }
+
+  .gh-steps-list {
+    list-style: none;
+    counter-reset: gh-step;
+    padding: 0;
+    margin: 0;
+  }
+
+  .gh-step-item {
+    counter-increment: gh-step;
+    position: relative;
+    padding: 12px 12px 12px 44px;
+    margin-bottom: 8px;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    font-size: 15px;
+    color: #4A5568;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .gh-step-item:hover {
+    background: #F7FAFC;
+    border-color: #E8687A;
+  }
+
+  .gh-step-item:focus-visible {
+    outline: 2px solid #E8687A;
+    outline-offset: 2px;
+  }
+
+  .gh-step-item::before {
+    content: counter(gh-step);
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #E8687A;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   /* ── Visualizer ────────────────────────────────────────────────── */
   .gh-visualizer {
     width: 200px;
@@ -423,6 +493,8 @@ function createPanel(): {
   repeatBtn: HTMLButtonElement;
   panel: HTMLDivElement;
   toggleBtn: HTMLButtonElement;
+  stepsContainer: HTMLDivElement;
+  stepsList: HTMLOListElement;
 } {
   const host = document.createElement('div');
   host.id = ROOT_ID;
@@ -458,6 +530,10 @@ function createPanel(): {
         <div class="gh-greeting-sub">マイクをタップして何でも聞いてください</div>
       </div>
       <div class="gh-transcript" aria-live="polite"></div>
+      <div class="gh-steps" id="gh-steps-container" aria-live="polite">
+        <div class="gh-steps-title">Your steps</div>
+        <ol class="gh-steps-list" id="gh-steps-list"></ol>
+      </div>
       <div class="gh-visualizer">
         <div class="gh-visualizer-bars">
           <div class="gh-visualizer-bar"></div>
@@ -481,6 +557,8 @@ function createPanel(): {
   const status = panel.querySelector('.gh-status') as HTMLDivElement;
   const repeatBtn = panel.querySelector('.gh-repeat-btn') as HTMLButtonElement;
   const closeBtn = panel.querySelector('.gh-close-btn') as HTMLButtonElement;
+  const stepsContainer = panel.querySelector('#gh-steps-container') as HTMLDivElement;
+  const stepsList = panel.querySelector('#gh-steps-list') as HTMLOListElement;
 
   const minimizePanel = (): void => {
     panel.classList.add('gh-minimized');
@@ -501,7 +579,7 @@ function createPanel(): {
   // Start minimized with a visible edge tab so users can always reopen it.
   panel.classList.add('gh-minimized');
 
-  return { shadowRoot, micBtn, transcript, status, repeatBtn, panel, toggleBtn };
+  return { shadowRoot, micBtn, transcript, status, repeatBtn, panel, toggleBtn, stepsContainer, stepsList };
 }
 
 // ── Main orchestration ───────────────────────────────────────────────────────
@@ -513,8 +591,56 @@ function init(): void {
   }
   console.log('[GrandHelper] Initializing panel');
 
-  const { micBtn, transcript, status, repeatBtn, panel, toggleBtn } = createPanel();
+  const { micBtn, transcript, status, repeatBtn, panel, toggleBtn, stepsContainer, stepsList } = createPanel();
   console.log('[GrandHelper] Panel created — click the extension icon or the mic to continue');
+
+  const HARDCODED_STEPS = [
+    'Switch to your google calendar tab',
+    'Select the event with your grandkids titled "Let\'s talk with Grandma & Grandpa"',
+    'Click the "Join with Google Meet" link',
+    'Click "Allow video permission"',
+  ];
+
+  const CALENDAR_EVENT_TITLE = "Let's talk with Grandma & Grandpa";
+
+  function showStepsInPanel(): void {
+    stepsList.innerHTML = HARDCODED_STEPS.map(
+      (text, i) => `<li class="gh-step-item" data-step="${i + 1}" tabindex="0" role="button">${text}</li>`
+    ).join('');
+    stepsContainer.classList.add('gh-visible');
+  }
+
+  function getPanelState(): { transcript: string; showSteps: boolean } {
+    return {
+      transcript: transcript.textContent ?? '',
+      showSteps: stepsContainer.classList.contains('gh-visible'),
+    };
+  }
+
+  stepsList.addEventListener('click', (e) => {
+    const item = (e.target as HTMLElement).closest('.gh-step-item');
+    if (!item) return;
+    const step = item.getAttribute('data-step');
+    const state = getPanelState();
+    if (step === '1') {
+      chrome.runtime.sendMessage({ type: 'SWITCH_TO_TAB', query: 'google calendar', state }, (res) => {
+        if (res?.status === 'error') console.warn('[GrandHelper]', res?.message ?? 'Could not switch tab');
+      });
+    } else if (step === '2') {
+      chrome.runtime.sendMessage({ type: 'CLICK_CALENDAR_EVENT', text: CALENDAR_EVENT_TITLE, state }, (res) => {
+        if (res?.status === 'error') console.warn('[GrandHelper]', res?.message ?? 'Could not click event');
+      });
+    }
+    // Steps 3 and 4 could be wired later when we have selectors or text to click
+  });
+
+  stepsList.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const item = (e.target as HTMLElement).closest('.gh-step-item');
+    if (!item) return;
+    e.preventDefault();
+    (item as HTMLElement).click();
+  });
   const openPanel = (): void => {
     panel.classList.remove('gh-minimized');
     toggleBtn.classList.add('gh-hidden');
@@ -534,7 +660,7 @@ function init(): void {
 
   // --- Respond to PING from popup ---
   chrome.runtime.onMessage.addListener(
-    (message: { type: string }, _sender, sendResponse) => {
+    (message: { type: string; state?: { transcript?: string; showSteps?: boolean } }, _sender, sendResponse) => {
       if (message.type === 'PING') {
         sendResponse({ status: 'ok' });
       } else if (message.type === 'OPEN_PANEL') {
@@ -542,6 +668,11 @@ function init(): void {
         sendResponse({ status: 'ok' });
       } else if (message.type === 'TOGGLE_PANEL') {
         togglePanel();
+        sendResponse({ status: 'ok' });
+      } else if (message.type === 'RESTORE_PANEL_STATE' && message.state) {
+        const { transcript: transcriptText, showSteps } = message.state;
+        if (typeof transcriptText === 'string') transcript.textContent = transcriptText;
+        if (showSteps) showStepsInPanel();
         sendResponse({ status: 'ok' });
       }
       return false;
@@ -579,6 +710,9 @@ function init(): void {
     }
 
     transcript.textContent = question;
+
+    // Show hardcoded steps on the main panel
+    showStepsInPanel();
 
     // Send voice payload to server (query + current tab + other tabs)
     try {

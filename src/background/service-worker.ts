@@ -76,6 +76,32 @@ function getPageHtml(): string {
   return document.documentElement.outerHTML;
 }
 
+/** Find a tab whose title or URL contains the query (case-insensitive). */
+async function findTabByTitleOrUrl(query: string): Promise<chrome.tabs.Tab | null> {
+  const tabs = await chrome.tabs.query({});
+  const lower = query.toLowerCase();
+  return tabs.find((tab) => {
+    const title = (tab.title ?? '').toLowerCase();
+    const url = (tab.url ?? '').toLowerCase();
+    return isSupportedTabUrl(tab.url) && (title.includes(lower) || url.includes(lower));
+  }) ?? null;
+}
+
+/** Run in a tab: find an element containing the given text and click its clickable ancestor. */
+function clickElementWithText(searchText: string): void {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    if (node.textContent && node.textContent.includes(searchText)) {
+      const el = node.parentElement;
+      if (!el) continue;
+      const clickable = el.closest('a') || el.closest('[role="button"]') || el.closest('button') || el.closest('[onclick]') || el;
+      (clickable as HTMLElement).click();
+      return;
+    }
+  }
+}
+
 const VOICE_PAYLOAD_URL = 'http://localhost:3000';
 
 async function collectVoicePayload(
@@ -140,9 +166,14 @@ async function collectVoicePayload(
   }
 }
 
+interface PanelState {
+  transcript?: string;
+  showSteps?: boolean;
+}
+
 chrome.runtime.onMessage.addListener(
   (
-    message: { type: string; payload?: unknown; query?: string },
+    message: { type: string; payload?: unknown; query?: string; text?: string; state?: PanelState },
     sender: chrome.runtime.MessageSender,
     sendResponse: (response: unknown) => void
   ) => {
@@ -152,7 +183,57 @@ chrome.runtime.onMessage.addListener(
       collectVoicePayload(message.query, sender.tab.id).then(() => {
         sendResponse({ status: 'ok' });
       });
-      return true; // keep channel open for async sendResponse
+      return true;
+    } else if (message.type === 'SWITCH_TO_TAB' && typeof message.query === 'string') {
+      const state = message.state;
+      findTabByTitleOrUrl(message.query).then(async (tab) => {
+        if (tab?.id == null) {
+          sendResponse({ status: 'error', message: 'No matching tab found' });
+          return;
+        }
+        await chrome.tabs.update(tab.id, { active: true });
+        if (tab.windowId != null) await chrome.windows.update(tab.windowId, { focused: true });
+        await ensureContentScript(tab.id);
+        if (state) {
+          await sleep(150);
+          try {
+            await chrome.tabs.sendMessage(tab.id, { type: 'RESTORE_PANEL_STATE', state });
+          } catch (_) {}
+        }
+        sendResponse({ status: 'ok', tabId: tab.id });
+      });
+      return true;
+    } else if (message.type === 'CLICK_CALENDAR_EVENT' && typeof message.text === 'string') {
+      const eventTitle = message.text;
+      const state = message.state;
+      findTabByTitleOrUrl('google calendar').then(async (tab) => {
+        if (!tab?.id) {
+          sendResponse({ status: 'error', message: 'Google Calendar tab not found' });
+          return;
+        }
+        try {
+          await chrome.tabs.update(tab.id, { active: true });
+          if (tab.windowId != null) await chrome.windows.update(tab.windowId, { focused: true });
+          await ensureContentScript(tab.id);
+          if (state) {
+            await sleep(150);
+            try {
+              await chrome.tabs.sendMessage(tab.id, { type: 'RESTORE_PANEL_STATE', state });
+            } catch (_) {}
+          }
+          await sleep(200);
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: clickElementWithText,
+            args: [eventTitle],
+          });
+          sendResponse({ status: 'ok' });
+        } catch (err) {
+          console.error('[GrandHelper] CLICK_CALENDAR_EVENT failed:', err);
+          sendResponse({ status: 'error', message: String(err) });
+        }
+      });
+      return true;
     }
     return false;
   }
