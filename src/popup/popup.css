@@ -19,7 +19,7 @@ body {
 .title {
   font-size: 22px;
   font-weight: 700;
-  color: #2c5f2d;
+  color: #E8687A;
   margin-bottom: 4px;
 }
 
@@ -46,8 +46,8 @@ body {
 }
 
 .status-dot.active {
-  background: #4caf50;
-  box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
+  background: #E8687A;
+  box-shadow: 0 0 6px rgba(232, 104, 122, 0.5);
 }
 
 .status-dot.inactive {
@@ -68,7 +68,7 @@ body {
 .settings-link {
   display: inline-block;
   font-size: 14px;
-  color: #2c5f2d;
+  color: #E8687A;
   text-decoration: none;
   padding: 6px 12px;
   border-radius: 4px;
@@ -76,5 +76,5 @@ body {
 }
 
 .settings-link:hover {
-  background: #f0f7f0;
+  background: #F7FAFD;
 }
