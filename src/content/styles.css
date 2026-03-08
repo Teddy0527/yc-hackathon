@@ -1,0 +1,76 @@
+/*
+ * GrandHelper overlay styles (injected into page, not shadow DOM).
+ * Panel styles live in content.ts as shadow DOM inline styles.
+ * All classes prefixed with gh- to avoid conflicts.
+ */
+
+@keyframes gh-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6); }
+  50%  { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+.gh-highlight {
+  outline: 3px solid #4CAF50 !important;
+  outline-offset: 2px !important;
+  animation: gh-pulse 1.5s ease-in-out infinite !important;
+  position: relative !important;
+}
+
+.gh-step-badge {
+  position: absolute !important;
+  top: -14px !important;
+  right: -14px !important;
+  width: 36px !important;
+  height: 36px !important;
+  background: #4CAF50 !important;
+  color: #fff !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  z-index: 2147483646 !important;
+  pointer-events: none !important;
+  font-family: Arial, sans-serif !important;
+  line-height: 1 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.gh-tooltip {
+  position: absolute !important;
+  left: 0 !important;
+  top: 100% !important;
+  margin-top: 8px !important;
+  background: #fff !important;
+  color: #333 !important;
+  font-size: 20px !important;
+  font-family: Arial, sans-serif !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18) !important;
+  max-width: 300px !important;
+  z-index: 2147483646 !important;
+  pointer-events: none !important;
+  white-space: normal !important;
+  line-height: 1.4 !important;
+}
+
+.gh-fallback-message {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  background: #fff !important;
+  color: #333 !important;
+  font-size: 24px !important;
+  font-family: Arial, sans-serif !important;
+  padding: 32px 40px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  z-index: 2147483647 !important;
+  text-align: center !important;
+  max-width: 500px !important;
+  line-height: 1.5 !important;
+}
