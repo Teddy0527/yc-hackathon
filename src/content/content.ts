@@ -8,6 +8,34 @@ import { showOverlay, clearOverlay, showFallbackMessage, OverlayStep } from './o
 import { serializeDOM } from '../utils/dom-serializer';
 import { askAssistant, AssistantResponse } from '../api/assistant';
 
+// Log as soon as script runs (Chrome: content script logs show in this page's Console — Inspect → Console, ensure "Default levels" / All)
+console.log('[GrandHelper] Content script loaded');
+
+/**
+ * Show a visible banner on the page so you can confirm the content script ran.
+ * Content script console.log can be hidden by DevTools context — this is a fallback.
+ */
+function showLoadedBanner(): void {
+  const id = 'grandhelper-loaded-banner';
+  if (document.getElementById(id)) return;
+  const el = document.createElement('div');
+  el.id = id;
+  el.setAttribute(
+    'style',
+    'position:fixed;bottom:12px;left:12px;z-index:2147483646;padding:8px 12px;background:#0891B2;color:#fff;font-family:sans-serif;font-size:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2);'
+  );
+  el.textContent = 'GrandHelper loaded. Inspect this page (F12) → Console. Filter by "GrandHelper" or show All levels.';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 8000);
+}
+
+// Run as soon as we have a body (content scripts run at document_idle, so body exists)
+if (document.body) {
+  showLoadedBanner();
+} else {
+  document.addEventListener('DOMContentLoaded', showLoadedBanner);
+}
+
 // ── Panel styles (isolated inside Shadow DOM) ────────────────────────────────
 
 const PANEL_STYLES = `
@@ -480,10 +508,13 @@ function createPanel(): {
 
 function init(): void {
   if (document.getElementById(ROOT_ID)) {
+    console.log('[GrandHelper] Already initialized, skipping');
     return;
   }
+  console.log('[GrandHelper] Initializing panel');
 
   const { micBtn, transcript, status, repeatBtn, panel, toggleBtn } = createPanel();
+  console.log('[GrandHelper] Panel created — click the extension icon or the mic to continue');
   const openPanel = (): void => {
     panel.classList.remove('gh-minimized');
     toggleBtn.classList.add('gh-hidden');
@@ -521,6 +552,7 @@ function init(): void {
   micBtn.addEventListener('click', async () => {
     if (isProcessing) return;
 
+    console.log('[GrandHelper] Mic button clicked');
     isProcessing = true;
     clearOverlay();
     stopSpeaking();
@@ -530,20 +562,35 @@ function init(): void {
     panel.classList.add('gh-listening');
 
     // 1. Voice input
+    console.log('[GrandHelper] Listening for speech...');
     const question = await startListening((interim: string) => {
       transcript.textContent = interim;
     });
 
     micBtn.classList.remove('gh-listening');
     panel.classList.remove('gh-listening');
+    console.log('[GrandHelper] Speech ended. Final query:', question || '(empty)');
 
     if (!question) {
       status.textContent = 'No speech detected. Try again.';
+      console.log('[GrandHelper] No speech detected, stopping');
       isProcessing = false;
       return;
     }
 
     transcript.textContent = question;
+
+    // Send voice payload to server (query + current tab + other tabs)
+    try {
+      chrome.runtime.sendMessage({
+        type: 'SEND_VOICE_PAYLOAD',
+        query: question,
+      });
+      console.log('[GrandHelper] Voice payload sent to background (query:', question.substring(0, 50) + (question.length > 50 ? '...' : '') + ')');
+    } catch (e) {
+      console.warn('[GrandHelper] Could not send voice payload:', e);
+    }
+
     status.textContent = 'Analyzing the page...';
     micBtn.classList.add('gh-thinking');
 

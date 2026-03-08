@@ -71,16 +71,89 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
+/** Get full HTML from a tab (run via scripting.executeScript). */
+function getPageHtml(): string {
+  return document.documentElement.outerHTML;
+}
+
+const VOICE_PAYLOAD_URL = 'http://localhost:3000';
+
+async function collectVoicePayload(
+  query: string,
+  currentTabId: number
+): Promise<void> {
+  const tabs = await chrome.tabs.query({});
+  const supported = tabs.filter((tab) => tab.id != null && isSupportedTabUrl(tab.url));
+  const currentTab = supported.find((t) => t.id === currentTabId);
+  const otherTabs = supported.filter((t) => t.id !== currentTabId);
+
+  const pageEntry = (tab: chrome.tabs.Tab, html: string) => ({
+    url: tab.url ?? '',
+    title: tab.title ?? '',
+    html,
+  });
+
+  const results: { tabId: number; html: string }[] = [];
+  for (const tab of supported) {
+    if (!tab.id) continue;
+    try {
+      const [{ result }] = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: getPageHtml,
+      });
+      results.push({ tabId: tab.id, html: typeof result === 'string' ? result : '' });
+    } catch {
+      results.push({ tabId: tab.id, html: '' });
+    }
+  }
+
+  const htmlByTabId = new Map(results.map((r) => [r.tabId, r.html]));
+
+  const current_page = currentTab
+    ? pageEntry(currentTab, htmlByTabId.get(currentTab.id!) ?? '')
+    : { url: '', title: '', html: '' };
+
+  const other_pages = otherTabs.map((tab) =>
+    pageEntry(tab, htmlByTabId.get(tab.id!) ?? '')
+  );
+
+  const payload = {
+    query,
+    current_page,
+    other_pages,
+    metadata: { timestamp: Math.floor(Date.now() / 1000) },
+  };
+
+  const body = JSON.stringify(payload);
+  console.log('[GrandHelper] Voice payload — sending to', VOICE_PAYLOAD_URL);
+  console.log('[GrandHelper] Payload (object):', payload);
+  console.log('[GrandHelper] Payload (JSON body):', body);
+
+  try {
+    await fetch(VOICE_PAYLOAD_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    });
+  } catch (err) {
+    console.error('[GrandHelper] Voice payload POST failed:', err);
+  }
+}
+
 chrome.runtime.onMessage.addListener(
   (
-    message: { type: string; payload?: unknown },
-    _sender: chrome.runtime.MessageSender,
+    message: { type: string; payload?: unknown; query?: string },
+    sender: chrome.runtime.MessageSender,
     sendResponse: (response: unknown) => void
   ) => {
     if (message.type === 'PING') {
       sendResponse({ status: 'ok' });
+    } else if (message.type === 'SEND_VOICE_PAYLOAD' && typeof message.query === 'string' && sender.tab?.id) {
+      collectVoicePayload(message.query, sender.tab.id).then(() => {
+        sendResponse({ status: 'ok' });
+      });
+      return true; // keep channel open for async sendResponse
     }
-    // Return true to indicate async response handling if needed in the future
     return false;
   }
 );
