@@ -1,0 +1,18 @@
+[
+    {
+        "name": "click",
+        "description": "Click on an element using a simple description",
+        "parameters": {
+            "element": "string",
+            "rationale": "string"
+        }
+    },
+    {
+        "name": "tab_change",
+        "description": "Switch to a different browser tab",
+        "parameters": {
+            "tab_name": "string",
+            "rationale": "string"
+        }
+    }
+]
