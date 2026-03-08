@@ -1,1 +1,1 @@
-export const API_URL = 'http://localhost:3456/api/ask';
+export const API_URL = 'http://localhost:3000/call';

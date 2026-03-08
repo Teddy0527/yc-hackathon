@@ -76,7 +76,7 @@ function getPageHtml(): string {
   return document.documentElement.outerHTML;
 }
 
-const VOICE_PAYLOAD_URL = 'https://test.com';
+const VOICE_PAYLOAD_URL = 'http://localhost:3000';
 
 async function collectVoicePayload(
   query: string,

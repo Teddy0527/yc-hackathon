@@ -22,6 +22,15 @@ const stepsCache = new Map();
 app.use(morgan('dev'));
 app.use(express.json());
 
+// CORS: allow extension (and other origins) to call the API
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 // Routes
 app.get('/', (req, res) => {
     res.status(200).send('Hi!');
@@ -37,6 +46,7 @@ app.post('/call', async (req, res) => {
 
     const allPages = [current_page, ...other_pages];
 
+    console.log("req.body:", req.body);
 
     // handle the population of each cache if it doesnt exist
     const userId = req.body.userId;
