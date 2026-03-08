@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "GrandHelper",
+  "name": "Silver Assist",
   "version": "1.0.0",
   "description": "Voice-powered AI assistant for elderly computer users",
   "permissions": [
@@ -20,7 +20,7 @@
     }
   ],
   "action": {
-    "default_title": "Toggle GrandHelper",
+    "default_title": "Toggle Silver Assist",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
