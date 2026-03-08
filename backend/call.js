@@ -19,11 +19,12 @@ export async function callLLM(prompt, query, history = []) {
         const response = await client.chat.completions.create({
             model: "shisa-ai/shisa-v2.1-llama3.3-70b",
             messages: [
-                { role: "system", content: "You are a helpful assistant." },
-                ...history,
+                { role: "system", content: "You are a browser automation engine. Always respond in valid JSON." },
+                { role: "user", content: prompt },
+                { role: "assistant", content: '{"response":' },  // force JSON continuation
                 { role: "user", content: query }
             ],
-            temperature: 0.7
+            temperature: 0
         });
 
         const content = response.choices[0].message.content;

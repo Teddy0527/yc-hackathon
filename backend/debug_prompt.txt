@@ -8,19 +8,19 @@ CRITICAL: You are NOT a chatbot. You control the browser EXCLUSIVELY through too
 This is the current state of the browser:
 
 Opened Tab:
-{{CURRENT_PAGE}}
+{"url":"https://example.com/","title":"Example Domain","html":"<html><body><h1>Example Domain</h1></body></html>"}
 
 Available Tabs:
-{{AVAILABLE_TABS}}
+[{"url":"https://example.com/","title":"Example Domain","html":"<html><body><h1>Example Domain</h1></body></html>"},{"url":"https://mail.google.com/mail/u/0/#inbox","title":"Inbox (361,847) - ryankaminsky@gmail.com - Gmail","html":""}]
 
 Conversation History:
-{{CONVERSATION_HISTORY}}
+[]
 
 Available Tools:
-{{TOOLS}}
+[{"name":"click","description":"Click on an element using a simple description","parameters":{"element":"string","rationale":"string"}},{"name":"tab_change","description":"Switch to a different browser tab","parameters":{"tab_name":"string","rationale":"string"}}]
 
 Actions already executed this session:
-{{ACTION_HISTORY}}
+[]
 
 ---
 
