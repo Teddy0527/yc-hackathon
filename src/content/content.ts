@@ -282,6 +282,7 @@ const PANEL_STYLES = `
 
 let lastResponse = '';
 let isProcessing = false;
+const ROOT_ID = 'grandhelper-root';
 
 // ── Panel creation ───────────────────────────────────────────────────────────
 
@@ -295,7 +296,7 @@ function createPanel(): {
   toggleBtn: HTMLButtonElement;
 } {
   const host = document.createElement('div');
-  host.id = 'grandhelper-root';
+  host.id = ROOT_ID;
   document.body.appendChild(host);
 
   const shadowRoot = host.attachShadow({ mode: 'open' });
@@ -339,17 +340,25 @@ function createPanel(): {
   const repeatBtn = panel.querySelector('.gh-repeat-btn') as HTMLButtonElement;
   const closeBtn = panel.querySelector('.gh-close-btn') as HTMLButtonElement;
 
-  // Minimize / restore
-  closeBtn.addEventListener('click', () => {
+  const minimizePanel = (): void => {
     panel.classList.add('gh-minimized');
     toggleBtn.classList.remove('gh-hidden');
-  });
+  };
 
-  toggleBtn.addEventListener('click', () => {
+  const openPanel = (): void => {
     panel.classList.remove('gh-minimized');
     toggleBtn.classList.add('gh-hidden');
     micBtn.focus();
-  });
+  };
+
+  // Minimize / restore
+  closeBtn.addEventListener('click', minimizePanel);
+
+  toggleBtn.addEventListener('click', openPanel);
+
+  // Start minimized; opened via toolbar click.
+  panel.classList.add('gh-minimized');
+  toggleBtn.classList.add('gh-hidden');
 
   return { shadowRoot, micBtn, transcript, status, repeatBtn, panel, toggleBtn };
 }
@@ -357,12 +366,38 @@ function createPanel(): {
 // ── Main orchestration ───────────────────────────────────────────────────────
 
 function init(): void {
-  const { micBtn, transcript, status, repeatBtn } = createPanel();
+  if (document.getElementById(ROOT_ID)) {
+    return;
+  }
+
+  const { micBtn, transcript, status, repeatBtn, panel, toggleBtn } = createPanel();
+  const openPanel = (): void => {
+    panel.classList.remove('gh-minimized');
+    toggleBtn.classList.add('gh-hidden');
+    micBtn.focus();
+  };
+  const minimizePanel = (): void => {
+    panel.classList.add('gh-minimized');
+    toggleBtn.classList.remove('gh-hidden');
+  };
+  const togglePanel = (): void => {
+    if (panel.classList.contains('gh-minimized')) {
+      openPanel();
+    } else {
+      minimizePanel();
+    }
+  };
 
   // --- Respond to PING from popup ---
   chrome.runtime.onMessage.addListener(
     (message: { type: string }, _sender, sendResponse) => {
       if (message.type === 'PING') {
+        sendResponse({ status: 'ok' });
+      } else if (message.type === 'OPEN_PANEL') {
+        openPanel();
+        sendResponse({ status: 'ok' });
+      } else if (message.type === 'TOGGLE_PANEL') {
+        togglePanel();
         sendResponse({ status: 'ok' });
       }
       return false;
